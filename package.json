@@ -1,6 +1,6 @@
 {
   "name": "react-native-screens-kb-fork",
-  "version": "3.18.3",
+  "version": "3.18.4",
   "description": "Native navigation primitives for your React Native app.",
   "scripts": {
     "check-types": "tsc --noEmit",
