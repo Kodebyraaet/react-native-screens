@@ -1,6 +1,6 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useState, useRef } from 'react';
 import { I18nManager, ScrollView, Text, StyleSheet } from 'react-native';
-import { SearchBarProps } from 'react-native-screens';
+import { SearchBarProps, SearchBarRef } from 'react-native-screens';
 import {
   createNativeStackNavigator,
   NativeStackNavigationProp,
@@ -32,6 +32,8 @@ interface MainScreenProps {
 const MainScreen = ({ navigation }: MainScreenProps): JSX.Element => {
   const toast = useToast();
 
+  const searchBarRef = useRef<SearchBarRef>(null);
+  const [value, setValue] = useState('');
   const [search, setSearch] = useState('');
   const [placeholder, setPlaceholder] = useState('Search for something...');
   const [barTintColor, setBarTintColor] = useState<BarTintColor>('white');
@@ -53,6 +55,7 @@ const MainScreen = ({ navigation }: MainScreenProps): JSX.Element => {
   useLayoutEffect(() => {
     navigation.setOptions({
       searchBar: {
+        ref: searchBarRef,
         barTintColor,
         hintTextColor,
         headerIconColor,
@@ -172,6 +175,30 @@ const MainScreen = ({ navigation }: MainScreenProps): JSX.Element => {
         label="Show search hint icon"
         value={shouldShowHintSearchIcon}
         onValueChange={setShouldShowHintSearchIcon}
+      />
+      <Text style={styles.heading}>Imperative actions</Text>
+      <Button onPress={() => searchBarRef.current?.blur()} title="Blur" />
+      <Button onPress={() => searchBarRef.current?.focus()} title="Focus" />
+      <SettingsInput
+        label="Value to insert"
+        value={value}
+        onValueChange={setValue}
+      />
+      <Button
+        onPress={() => searchBarRef.current?.setText(value)}
+        title="Insert text"
+      />
+      <Button
+        onPress={() => searchBarRef.current?.clearText()}
+        title="Clear Text"
+      />
+      <Button
+        onPress={() => searchBarRef.current?.toggleCancelButton(true)}
+        title="Show cancel"
+      />
+      <Button
+        onPress={() => searchBarRef.current?.toggleCancelButton(false)}
+        title="Hide cancel"
       />
       <Text style={styles.heading}>Other</Text>
       <Button

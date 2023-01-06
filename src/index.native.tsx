@@ -9,6 +9,8 @@ import {
   UIManager,
   View,
   ViewProps,
+  findNodeHandle,
+  NativeModules,
 } from 'react-native';
 import { Freeze } from 'react-freeze';
 import { version } from 'react-native/package.json';
@@ -83,8 +85,53 @@ let NativeScreenStackHeaderSubview: React.ComponentType<React.PropsWithChildren<
   ViewProps & { type?: HeaderSubviewTypes }
 >>;
 let AnimatedNativeScreen: React.ComponentType<ScreenProps>;
-let NativeSearchBar: React.ComponentType<SearchBarProps>;
+let NativeSearchBar: React.ComponentType<SearchBarProps> & {
+  focus: (reactTag: number | null) => void;
+  blur: (reactTag: number | null) => void;
+  clearText: (reactTag: number | null) => void;
+  setText: (reactTag: number | null, text: string) => void;
+  toggleCancelButton: (reactTag: number | null, flag: boolean) => void;
+};
 let NativeFullWindowOverlay: React.ComponentType<View>;
+
+class SearchBar extends React.Component<SearchBarProps> {
+  blur() {
+    return NativeModules.RNSSearchBarManager.blur(findNodeHandle(this));
+  }
+
+  focus() {
+    return NativeModules.RNSSearchBarManager.focus(findNodeHandle(this));
+  }
+
+  toggleCancelButton(flag: boolean) {
+    return NativeModules.RNSSearchBarManager.toggleCancelButton(
+      findNodeHandle(this),
+      flag
+    );
+  }
+
+  setText(text: string) {
+    return NativeModules.RNSSearchBarManager.setText(
+      findNodeHandle(this),
+      text
+    );
+  }
+
+  clearText() {
+    return NativeModules.RNSSearchBarManager.clearText(findNodeHandle(this));
+  }
+
+  render() {
+    if (!isSearchBarAvailableForCurrentPlatform) {
+      console.warn(
+        'Importing SearchBar is only valid on iOS and Android devices.'
+      );
+      return View;
+    }
+
+    return <ScreensNativeModules.NativeSearchBar {...this.props} />;
+  }
+}
 
 const ScreensNativeModules = {
   get NativeScreen() {
@@ -431,6 +478,7 @@ module.exports = {
   ScreenContext,
   ScreenStack,
   InnerScreen,
+  SearchBar,
 
   get NativeScreen() {
     return ScreensNativeModules.NativeScreen;
@@ -450,16 +498,6 @@ module.exports = {
   get ScreenStackHeaderSubview() {
     return ScreensNativeModules.NativeScreenStackHeaderSubview;
   },
-  get SearchBar() {
-    if (!isSearchBarAvailableForCurrentPlatform) {
-      console.warn(
-        'Importing SearchBar is only valid on iOS and Android devices.'
-      );
-      return View;
-    }
-
-    return ScreensNativeModules.NativeSearchBar;
-  },
   get FullWindowOverlay() {
     if (Platform.OS !== 'ios') {
       console.warn('Importing FullWindowOverlay is only valid on iOS devices.');
@@ -468,6 +506,7 @@ module.exports = {
 
     return ScreensNativeModules.NativeFullWindowOverlay;
   },
+
   // these are functions and will not be evaluated until used
   // so no need to use getters for them
   ScreenStackHeaderBackButtonImage,
